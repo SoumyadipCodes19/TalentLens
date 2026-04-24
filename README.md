@@ -9,7 +9,7 @@
 
 ## 🚀 Live Demo
 
-> **[Live URL]** — *(Vercel deployment link will be added after deploy)*
+> **[Live URL](https://talent-lens-blue.vercel.app/)** — *https://talent-lens-blue.vercel.app/*
 
 ## ✨ Features
 

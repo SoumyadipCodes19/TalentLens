@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   keywords: ["AI recruiting", "talent scouting", "candidate matching", "recruitment agent", "AI HR"],
 };
 
+import { Analytics } from "@vercel/analytics/react"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -16,6 +18,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         {children}
+        <Analytics />
       </body>
     </html>
   );
