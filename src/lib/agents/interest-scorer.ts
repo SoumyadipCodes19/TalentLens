@@ -21,30 +21,17 @@ export async function analyzeAllInterest(
   candidates: CandidateProfile[],
   onProgress?: (candidateId: string, index: number) => void
 ): Promise<{ data: InterestResult[]; thinking: string }> {
-  const results: InterestResult[] = [];
-  const thinkingParts: string[] = [];
+  const resultsResults = await Promise.all(
+    conversations.map(async (conversation, index) => {
+      const candidate = candidates.find(c => c.id === conversation.candidateId);
+      if (!candidate) throw new Error(`No candidate for conversation ${conversation.candidateId}`);
+      onProgress?.(conversation.candidateId, index);
+      return analyzeInterest(conversation, candidate);
+    })
+  );
 
-  const batchSize = 3;
-  for (let i = 0; i < conversations.length; i += batchSize) {
-    const batch = conversations.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(async (conversation, batchIndex) => {
-        const candidate = candidates.find(c => c.id === conversation.candidateId);
-        if (!candidate) throw new Error(`No candidate for conversation ${conversation.candidateId}`);
-        onProgress?.(conversation.candidateId, i + batchIndex);
-        return analyzeInterest(conversation, candidate);
-      })
-    );
-
-    for (const result of batchResults) {
-      results.push(result.data);
-      thinkingParts.push(result.thinking);
-    }
-
-    if (i + batchSize < conversations.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
+  const results = resultsResults.map(r => r.data);
+  const thinkingParts = resultsResults.map(r => r.thinking);
 
   return {
     data: results,
