@@ -9,8 +9,6 @@ export const metadata: Metadata = {
 
 import { Analytics } from "@vercel/analytics/react"
 
-export const maxDuration = 60; // Max allowed for Vercel Hobby tier
-
 export default function RootLayout({
   children,
 }: Readonly<{
