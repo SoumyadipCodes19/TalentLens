@@ -57,7 +57,7 @@ export async function runPipeline(
     candidates = importedCandidates;
   } else {
     emit({ stage: 'candidate_discovery', status: 'thinking', thinking: '🔎 Generating diverse candidate profiles based on search strategy...', timestamp: Date.now() });
-    const candidateResult = await discoverCandidates(jdResult.data, strategyResult.data, 12);
+    const candidateResult = await discoverCandidates(jdResult.data, strategyResult.data, 6);
     candidates = candidateResult.data;
     emit({
       stage: 'candidate_discovery',
@@ -92,7 +92,7 @@ export async function runPipeline(
 
   // Select top candidates for outreach (those scoring above 40, up to 8)
   const sortedMatches = [...matchResult.data].sort((a, b) => b.overallMatchScore - a.overallMatchScore);
-  const topCandidateIds = sortedMatches.slice(0, 8).map(m => m.candidateId);
+  const topCandidateIds = sortedMatches.slice(0, 4).map(m => m.candidateId);
   const topCandidates = candidates.filter(c => topCandidateIds.includes(c.id));
   const topMatchResults = matchResult.data.filter(m => topCandidateIds.includes(m.candidateId));
 
