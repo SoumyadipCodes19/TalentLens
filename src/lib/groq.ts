@@ -24,7 +24,7 @@ export async function generateWithGroq<T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const completion = await client.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-3.1-8b-instant',
         messages: [
           {
             role: 'system',
@@ -47,7 +47,7 @@ export async function generateWithGroq<T>(
 
       return {
         data: validated,
-        thinking: 'Groq Llama 3.3 70B generated candidate conversation responses with a distinct voice.',
+        thinking: 'Groq Llama 3.1 8B generated candidate conversation responses with a distinct voice.',
       };
     } catch (error) {
       lastError = error as Error;

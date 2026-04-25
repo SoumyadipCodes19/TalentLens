@@ -57,7 +57,7 @@ export async function runPipeline(
     candidates = importedCandidates;
   } else {
     emit({ stage: 'candidate_discovery', status: 'thinking', thinking: '🔎 Generating diverse candidate profiles based on search strategy...', timestamp: Date.now() });
-    const candidateResult = await discoverCandidates(jdResult.data, strategyResult.data, 3);
+    const candidateResult = await discoverCandidates(jdResult.data, strategyResult.data, 12);
     candidates = candidateResult.data;
     emit({
       stage: 'candidate_discovery',
@@ -90,9 +90,9 @@ export async function runPipeline(
 
   emit({ stage: 'match_scoring', status: 'completed', data: matchResult.data, timestamp: Date.now() });
 
-  // Select top candidates for outreach (those scoring above 40, up to 3)
+  // Select top candidates for outreach (those scoring above 40, up to 8)
   const sortedMatches = [...matchResult.data].sort((a, b) => b.overallMatchScore - a.overallMatchScore);
-  const topCandidateIds = sortedMatches.slice(0, 3).map(m => m.candidateId);
+  const topCandidateIds = sortedMatches.slice(0, 8).map(m => m.candidateId);
   const topCandidates = candidates.filter(c => topCandidateIds.includes(c.id));
   const topMatchResults = matchResult.data.filter(m => topCandidateIds.includes(m.candidateId));
 
@@ -141,10 +141,6 @@ export async function runPipeline(
   );
 
   emit({ stage: 'interest_analysis', status: 'completed', data: interestResult.data, timestamp: Date.now() });
-
-  // ── Rate Limit Pause ────────────────────────────────────────────────
-  emit({ stage: 'self_reflection_ranking', status: 'thinking', thinking: '⏳ Pausing for 60 seconds to reset API rate limits...', timestamp: Date.now() });
-  await new Promise(resolve => setTimeout(resolve, 60000));
 
   // ── Step 7: Self-Reflection + Final Ranking ─────────────────────────
   emit({ stage: 'self_reflection_ranking', status: 'started', timestamp: Date.now() });

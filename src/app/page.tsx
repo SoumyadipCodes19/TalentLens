@@ -135,7 +135,7 @@ function getStageThinking(stage: PipelineStage): string {
     strategy_planning: 'Creating autonomous search strategy — deciding which skills to prioritize, where to be flexible, and what deal-breakers to enforce...',
     candidate_discovery: 'Discovering candidates — generating diverse profiles across experience levels, backgrounds, and personality types...',
     match_scoring: 'Evaluating each candidate with granular skill-by-skill analysis, experience alignment, and domain expertise scoring...',
-    outreach_simulation: 'Conducting personalized outreach conversations via Groq Llama 3.3 — each candidate responds based on their unique personality...',
+    outreach_simulation: 'Conducting personalized outreach conversations via Groq Llama 3.1 8B — each candidate responds based on their unique personality...',
     interest_analysis: 'Analyzing conversation transcripts — extracting enthusiasm, availability, role-fit questions, and compensation alignment signals...',
     self_reflection_ranking: 'Self-reflecting on scoring — checking for seniority bias, education bias, similarity patterns... then generating final ranking.',
   };

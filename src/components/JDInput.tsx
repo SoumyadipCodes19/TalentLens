@@ -134,7 +134,7 @@ export default function JDInput({ onSubmit, isLoading }: JDInputProps) {
       </div>
 
       <div className="sidebar-footer">
-        <p>Built with Gemini 2.5 Flash + Groq Llama 3.3</p>
+        <p>Built with Gemini 2.5 Flash + Groq Llama 3.1 8B</p>
       </div>
     </div>
   );
