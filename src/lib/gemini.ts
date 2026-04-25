@@ -18,7 +18,7 @@ export async function generateStructured<T>(
   systemPrompt: string,
   userPrompt: string,
   schema: z.ZodType<T>,
-  maxRetries = 5
+  maxRetries = 2
 ): Promise<{ data: T; thinking: string }> {
   const gemini = getModel();
   let lastError: Error | null = null;
@@ -67,9 +67,8 @@ export async function generateStructured<T>(
     } catch (error) {
       lastError = error as Error;
       if (attempt < maxRetries - 1) {
-        // Exponential backoff with jitter
-        const delay = Math.pow(2, attempt) * 2000 + Math.random() * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        console.warn(`[Gemini API] Request failed. Waiting 60 seconds before retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 60000));
       }
     }
   }
