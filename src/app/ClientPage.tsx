@@ -7,7 +7,7 @@ import ResultsDashboard from '@/components/ResultsDashboard';
 import type { PipelineEvent, PipelineResult, PipelineStage, CandidateProfile, MatchResult, Conversation, InterestResult } from '@/lib/schemas';
 import { Bot, AlertCircle } from 'lucide-react';
 
-export default function ClientPage() {
+export default function ClientPage({ session }: { session: any }) {
   const [isLoading, setIsLoading] = useState(false);
   const [events, setEvents] = useState<PipelineEvent[]>([]);
   const [currentStage, setCurrentStage] = useState<PipelineStage | null>(null);
@@ -83,6 +83,14 @@ export default function ClientPage() {
         finalCandidates = candData.candidates;
         addEvent({ stage: 'candidate_discovery', status: 'thinking', thinking: candData.thinking, timestamp: Date.now() });
       }
+
+      // Limit to 5 candidates for non-admins
+      const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+      if (!isAdmin && finalCandidates.length > 5) {
+        addEvent({ stage: 'candidate_discovery', status: 'thinking', thinking: `⚠️ Non-admin usage limit: Truncating list from ${finalCandidates.length} to 5 candidates.`, timestamp: Date.now() });
+        finalCandidates = finalCandidates.slice(0, 5);
+      }
+
       addEvent({ stage: 'candidate_discovery', status: 'completed', data: finalCandidates, timestamp: Date.now() });
 
       // 4. Match Scoring (Granular)

@@ -1,141 +1,83 @@
-# TalentLens — AI-Powered Talent Scouting & Engagement Agent
+# TalentLens — Autonomous Talent Scouting & Engagement
 
-> An autonomous AI agent that parses job descriptions, discovers matching candidates, conducts conversational outreach, and produces ranked shortlists — with full reasoning transparency.
+> A high-fidelity autonomous AI agentic pipeline that parses job descriptions, discovers matching candidates, conducts conversational outreach via LLMs, and produces secure, ranked shortlists.
 
-![TalentLens](https://img.shields.io/badge/AI-TalentLens-6366f1?style=for-the-badge)
-![Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq_Llama_3.3-F55036?style=for-the-badge)
+![TalentLens](https://img.shields.io/badge/AI-TalentLens-000000?style=for-the-badge)
+![Gemini](https://img.shields.io/badge/Google_Cloud-Gemini_2.5_Flash-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq_Llama_3.1-F55036?style=for-the-badge)
 ![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![Auth](https://img.shields.io/badge/Auth.js-Google_OAuth-black?style=for-the-badge)
 
-## 🚀 Live Demo
+## 🚀 Overview
 
-> **[Live URL](https://talent-lens-blue.vercel.app/)** — *https://talent-lens-blue.vercel.app/*
+TalentLens is designed to stabilize and scale the talent acquisition process by moving from monolithic processing to a highly concurrent, granular API-driven architecture. It ensures production stability on serverless platforms (like Vercel) while maintaining a premium, minimalistic aesthetic.
 
-## ✨ Features
+## ✨ Key Features
 
-### Agentic Capabilities
-- **🧠 Autonomous Planning** — Agent creates its own search strategy based on JD analysis
-- **🔧 Tool Orchestration** — Agent decides which tools to use and when
-- **🔄 Self-Reflection Loop** — Agent reviews its own scores for bias and re-calibrates
-- **💬 Adaptive Conversations** — Each outreach conversation is uniquely shaped by candidate responses
-- **📊 Dynamic Decision Making** — Agent makes judgment calls about shortlisting
-- **🔍 Reasoning Transparency** — Every decision shows the agent's chain-of-thought
+### 🛡️ Secure & Private
 
-### Core Pipeline (7 Steps)
-1. **JD Parser** — Extracts explicit + hidden requirements from job descriptions
-2. **Strategy Planner** — Creates autonomous search strategy (not hard-coded)
-3. **Candidate Discovery** — Generates diverse candidate profiles (or imports from CSV/JSON)
-4. **Match Scorer** — Granular skill-by-skill match evaluation with explainability
-5. **Outreach Simulator** — Multi-turn personalized conversations via Groq Llama 3.3
-6. **Interest Analyzer** — Sentiment analysis on conversation transcripts
-7. **Self-Reflector & Ranker** — Bias detection, score adjustment, final ranking
+- **Google OAuth Integration**: Secure sign-in for all users.
+- **Upstash Redis Usage Tracking**: Strictly enforced limits (3 runs per account) to prevent resource abuse.
+- **Admin Bypass**: Global admin accounts (configured via ENV) enjoy unlimited access and full pipeline capabilities.
 
-### Dual-Axis Scoring
-- **Match Score (0-100)**: Technical skills (40%) + Experience (25%) + Domain (20%) + Education (15%)
-- **Interest Score (0-100)**: Enthusiasm (30%) + Availability (25%) + Role-fit (20%) + Compensation (15%) + Culture (10%)
-- **Combined Score**: `Match × 0.6 + Interest × 0.4`
+### 🧠 Agentic Pipeline (7 Steps)
 
-## 🛠️ Tech Stack
+1. **JD Parser** — Deep analysis of explicit and hidden job requirements.
+2. **Strategy Planner** — Autonomous creation of search and evaluation strategies.
+3. **Candidate Discovery** — AI-generated candidate personas (or CSV/JSON imports).
+4. **Match Scorer** — Skill-by-skill evaluation with full reasoning transparency.
+5. **Outreach Simulator** — multi-turn personalized conversations via Groq Llama 3.1 8B.
+6. **Interest Analyzer** — Sentiment and engagement analysis of outreach transcripts.
+7. **Self-Reflector & Ranker** — Automated bias detection and final executive brief generation.
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, Server Actions) |
-| AI (Reasoning) | Google Gemini 2.5 Flash |
-| AI (Conversations) | Groq Llama 3.3 70B Versatile |
-| Validation | Zod (structured LLM output) |
-| Styling | Vanilla CSS (dark glassmorphism) |
-| Charts | Recharts |
-| Deploy | Vercel |
+### 🏗️ Modern Architecture
+
+- **Concurrency-First**: Heavy scoring and outreach tasks are executed in parallel across granular API requests, bypassing serverless timeout limits.
+- **Minimalist Aesthetic**: A professional, monochrome dark-mode design focused on data clarity and high-end typography.
+- **Disposable Email Protection**: Built-in blocking of temporary email domains to maintain user quality.
 
 ## 📦 Local Setup
 
 ### Prerequisites
+
 - Node.js 18+
-- Free API keys:
-  - [Google AI Studio](https://aistudio.google.com/apikey) — Gemini 2.5 Flash
-  - [Groq Console](https://console.groq.com/keys) — Llama 3.3 70B
+- [Google Cloud Console](https://console.cloud.google.com/) (Gemini API enabled)
+- [Groq Console API Key](https://console.groq.com/keys) (Llama 3.1 8B)
+- [Upstash Redis](https://console.upstash.com/) (Free tier URL/Token)
+- [Google Cloud Console](https://console.cloud.google.com/) (OAuth Client ID/Secret)
 
 ### Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/talentlens.git
+# Clone and enter
+git clone https://github.com/SoumyadipCodes19/TalentLens.git
 cd talentlens
 
-# Install dependencies
+# Install
 npm install
 
-# Set up environment variables
-cp .env.local.example .env.local
-# Edit .env.local and add your API keys:
-# GEMINI_API_KEY=your_key_here
-# GROQ_API_KEY=your_key_here
+# Environment Configuration
+# Create a .env.local file with the following keys:
+GEMINI_API_KEY=your_google_cloud_api_key
+GROQ_API_KEY=your_key
 
-# Start development server
+AUTH_SECRET=your_secret # Generate with: npx auth secret
+GOOGLE_CLIENT_ID=your_id
+GOOGLE_CLIENT_SECRET=your_secret
+
+KV_REST_API_URL=your_upstash_url
+KV_REST_API_TOKEN=your_upstash_token
+
+ADMIN_EMAIL=your@email.com
+NEXT_PUBLIC_ADMIN_EMAIL=your@email.com
+
+# Start
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+## 🏗️ Technical Architecture
 
-### Running in Production
-
-```bash
-npm run build
-npm start
-```
-
-## 📋 Usage
-
-1. **Paste a Job Description** — or click one of the sample JDs (Senior SWE, Product Manager, Data Scientist)
-2. **Optionally import candidates** — Upload a CSV/JSON file with real candidate data
-3. **Click "Launch Agent Pipeline"** — Watch the 7-step agent pipeline execute with live reasoning
-4. **Review results** — Browse the Final Ranking, Candidates, Conversations, and Self-Reflection tabs
-5. **Export** — Download the ranked shortlist as CSV
-
-### CSV Import Format
-
-```csv
-name,current_role,company,experience_years,skills,location,summary
-"Jane Smith","Senior SWE","Google",8,"Python;Go;Kubernetes","San Francisco","Backend engineer..."
-```
-
-## 🏗️ Architecture
-
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for the detailed write-up.
-
-### Quick Overview
-
-```
-User Input (JD + optional CSV)
-    │
-    ▼
-┌─────────────────────────────────────┐
-│     Agent Orchestrator (Pipeline)    │
-│                                     │
-│  1. JD Parser      ──► Gemini 2.5   │
-│  2. Strategy Planner──► Gemini 2.5   │
-│  3. Candidate Disc. ──► Gemini 2.5   │
-│  4. Match Scorer    ──► Gemini 2.5   │
-│  5. Outreach Sim.   ──► Groq Llama   │
-│  6. Interest Scorer ──► Gemini 2.5   │
-│  7. Self-Reflect    ──► Gemini 2.5   │
-│                                     │
-│  Memory + Context across all steps   │
-└─────────────────────┬───────────────┘
-                      │
-                      ▼
-            Ranked Shortlist
-         (Match + Interest Scores)
-```
-
-## 📊 Sample Output
-
-| Rank | Candidate | Match | Interest | Combined | Recommendation |
-|------|-----------|-------|----------|----------|---------------|
-| 🥇 1 | Alex Chen | 92 | 85 | 89 | STRONG YES |
-| 🥈 2 | Sarah Kim | 88 | 78 | 84 | YES |
-| 🥉 3 | James Liu | 85 | 72 | 80 | YES |
-| 4 | Maria Patel | 76 | 68 | 73 | MAYBE |
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed implementation notes on the concurrent pipeline model and state management.
 
 ## 📄 License
 

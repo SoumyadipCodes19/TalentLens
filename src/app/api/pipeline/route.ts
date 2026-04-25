@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { Redis } from '@upstash/redis';
+import { auth } from '@/auth';
 import { parseJobDescription } from '@/lib/agents/jd-parser';
 import { planSearchStrategy } from '@/lib/agents/strategy-planner';
 import { discoverCandidates } from '@/lib/agents/candidate-discovery';
@@ -9,9 +11,38 @@ import { selfReflect, generateFinalRanking } from '@/lib/agents/self-reflector';
 
 export const maxDuration = 60; // Natively supported in API routes
 
+// Initialize Redis if configured
+const redis = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN 
+  ? new Redis({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN }) 
+  : null;
+
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Please log in.' }, { status: 401 });
+    }
+
+    const email = session.user.email;
+    const isAdmin = email === process.env.ADMIN_EMAIL;
+
+    // Check usage limits for non-admins if Redis is connected
+    if (!isAdmin && redis) {
+      const usageKey = `usage:${email}`;
+      const runs = await redis.get<number>(usageKey) || 0;
+      
+      if (runs >= 3) {
+        return NextResponse.json({ success: false, error: 'Usage limit reached. You have completed 3 pipeline runs.' }, { status: 403 });
+      }
+    }
+
     const { action, payload } = await req.json();
+
+    // Increment usage on the very first step (parse_jd)
+    if (action === 'parse_jd' && !isAdmin && redis) {
+      const usageKey = `usage:${email}`;
+      await redis.incr(usageKey);
+    }
 
     switch (action) {
       case 'parse_jd': {

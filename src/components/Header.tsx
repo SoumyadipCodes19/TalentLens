@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Aperture } from 'lucide-react';
+import { Aperture, LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 
 export default function Header() {
   return (
@@ -24,6 +25,12 @@ export default function Header() {
           </p>
         </div>
       </div>
+      <button 
+        onClick={() => signOut()}
+        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
+      >
+        <LogOut size={14} /> Sign out
+      </button>
     </div>
   );
 }
