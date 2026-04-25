@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import JDInput from '@/components/JDInput';
 import PipelineProgress from '@/components/PipelineProgress';
 import ResultsDashboard from '@/components/ResultsDashboard';
-import type { PipelineEvent, PipelineResult, PipelineStage, CandidateProfile } from '@/lib/schemas';
+import type { PipelineEvent, PipelineResult, PipelineStage, CandidateProfile, MatchResult, Conversation, InterestResult } from '@/lib/schemas';
 import { Bot, AlertCircle } from 'lucide-react';
 
 export default function ClientPage() {
@@ -31,7 +31,16 @@ export default function ClientPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, payload })
     });
-    const json = await res.json();
+    
+    // We check text first in case Vercel returns an HTML 504 page
+    const text = await res.text();
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Server returned an invalid response (might be a timeout): ${text.slice(0, 100)}`);
+    }
+
     if (!json.success) throw new Error(json.error || 'API failed');
     return json.data;
   };
@@ -76,29 +85,55 @@ export default function ClientPage() {
       }
       addEvent({ stage: 'candidate_discovery', status: 'completed', data: finalCandidates, timestamp: Date.now() });
 
-      // 4. Match Scoring
+      // 4. Match Scoring (Granular)
       setCurrentStage('match_scoring');
       addEvent({ stage: 'match_scoring', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'match_scoring', status: 'thinking', thinking: getStageThinking('match_scoring'), timestamp: Date.now() });
       
-      const scoreData = await callApi('score_candidates', { parsedJD: jdData.parsedJD, candidates: finalCandidates, strategy: strategyData.strategy });
-      addEvent({ stage: 'match_scoring', status: 'completed', data: scoreData.matchResults, timestamp: Date.now() });
+      const matchResults: MatchResult[] = [];
+      // Execute scoring requests completely concurrently to maximize speed and bypass timeouts
+      const scorePromises = finalCandidates.map(async (candidate) => {
+        const scoreData = await callApi('score_candidate', { parsedJD: jdData.parsedJD, candidate, strategy: strategyData.strategy });
+        matchResults.push(scoreData.matchResult);
+        addEvent({ stage: 'match_scoring', status: 'thinking', thinking: `Scored candidate: ${candidate.name}`, timestamp: Date.now() });
+      });
+      await Promise.all(scorePromises);
+      addEvent({ stage: 'match_scoring', status: 'completed', data: matchResults, timestamp: Date.now() });
 
-      // 5. Outreach Simulation
+      // 5. Outreach Simulation (Granular)
       setCurrentStage('outreach_simulation');
       addEvent({ stage: 'outreach_simulation', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'outreach_simulation', status: 'thinking', thinking: getStageThinking('outreach_simulation'), timestamp: Date.now() });
       
-      const outreachData = await callApi('simulate_outreach', { parsedJD: jdData.parsedJD, candidates: finalCandidates, matchResults: scoreData.matchResults });
-      addEvent({ stage: 'outreach_simulation', status: 'completed', data: outreachData.conversations, timestamp: Date.now() });
+      // Select top 2 candidates for outreach
+      const sortedMatches = [...matchResults].sort((a, b) => b.overallMatchScore - a.overallMatchScore);
+      const topCandidateIds = sortedMatches.slice(0, 2).map(m => m.candidateId);
+      const topCandidates = finalCandidates.filter(c => topCandidateIds.includes(c.id));
+      
+      const conversations: Conversation[] = [];
+      const outreachPromises = topCandidates.map(async (candidate) => {
+        const matchResult = matchResults.find(m => m.candidateId === candidate.id);
+        const outreachData = await callApi('simulate_outreach', { parsedJD: jdData.parsedJD, candidate, matchResult });
+        conversations.push(outreachData.conversation);
+        addEvent({ stage: 'outreach_simulation', status: 'thinking', thinking: `Simulated outreach for: ${candidate.name}`, timestamp: Date.now() });
+      });
+      await Promise.all(outreachPromises);
+      addEvent({ stage: 'outreach_simulation', status: 'completed', data: conversations, timestamp: Date.now() });
 
-      // 6. Interest Analysis
+      // 6. Interest Analysis (Granular)
       setCurrentStage('interest_analysis');
       addEvent({ stage: 'interest_analysis', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'interest_analysis', status: 'thinking', thinking: getStageThinking('interest_analysis'), timestamp: Date.now() });
       
-      const interestData = await callApi('analyze_interest', { conversations: outreachData.conversations, candidates: finalCandidates });
-      addEvent({ stage: 'interest_analysis', status: 'completed', data: interestData.interestResults, timestamp: Date.now() });
+      const interestResults: InterestResult[] = [];
+      const interestPromises = conversations.map(async (conversation) => {
+        const candidate = finalCandidates.find(c => c.id === conversation.candidateId);
+        const interestData = await callApi('analyze_interest', { conversation, candidate });
+        interestResults.push(interestData.interestResult);
+        addEvent({ stage: 'interest_analysis', status: 'thinking', thinking: `Analyzed interest for: ${candidate?.name}`, timestamp: Date.now() });
+      });
+      await Promise.all(interestPromises);
+      addEvent({ stage: 'interest_analysis', status: 'completed', data: interestResults, timestamp: Date.now() });
 
       // 7. Self-Reflection
       setCurrentStage('self_reflection_ranking');
@@ -107,8 +142,8 @@ export default function ClientPage() {
       
       const reflectData = await callApi('self_reflect', { 
         candidates: finalCandidates, 
-        matchResults: scoreData.matchResults, 
-        interestResults: interestData.interestResults, 
+        matchResults: matchResults, 
+        interestResults: interestResults, 
       });
       addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: reflectData.thinking, timestamp: Date.now() });
 
@@ -116,8 +151,8 @@ export default function ClientPage() {
       addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: '📊 Generating final executive brief and ranking...', timestamp: Date.now() });
       const rankData = await callApi('generate_final_ranking', {
         candidates: finalCandidates,
-        matchResults: scoreData.matchResults,
-        interestResults: interestData.interestResults,
+        matchResults: matchResults,
+        interestResults: interestResults,
         selfReflection: reflectData.selfReflection
       });
       addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: rankData.thinking, timestamp: Date.now() });
@@ -128,9 +163,9 @@ export default function ClientPage() {
         parsedJD: jdData.parsedJD,
         strategy: strategyData.strategy,
         candidates: finalCandidates,
-        matchResults: scoreData.matchResults,
-        conversations: outreachData.conversations,
-        interestResults: interestData.interestResults,
+        matchResults: matchResults,
+        conversations: conversations,
+        interestResults: interestResults,
         selfReflection: reflectData.selfReflection,
         finalRanking: rankData.finalRanking,
         events: [], // Events are tracked in component state now

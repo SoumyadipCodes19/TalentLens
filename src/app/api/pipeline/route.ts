@@ -29,25 +29,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, data: { candidates: result.data, thinking: result.thinking } });
       }
       
-      case 'score_candidates': {
-        const result = await scoreAllCandidates(payload.parsedJD, payload.candidates, payload.strategy);
-        return NextResponse.json({ success: true, data: { matchResults: result.data, thinking: result.thinking } });
+      case 'score_candidate': {
+        const result = await scoreAllCandidates(payload.parsedJD, [payload.candidate], payload.strategy);
+        return NextResponse.json({ success: true, data: { matchResult: result.data[0], thinking: result.thinking } });
       }
       
       case 'simulate_outreach': {
-        const sortedMatches = [...payload.matchResults].sort((a, b) => b.overallMatchScore - a.overallMatchScore);
-        const topCandidateIds = sortedMatches.slice(0, 4).map(m => m.candidateId);
-        const topCandidates = payload.candidates.filter((c: any) => topCandidateIds.includes(c.id));
-        const topMatchResults = payload.matchResults.filter((m: any) => topCandidateIds.includes(m.candidateId));
-
-        const result = await simulateAllOutreach(topCandidates, payload.parsedJD, topMatchResults);
-        return NextResponse.json({ success: true, data: { conversations: result.data, thinking: result.thinking } });
+        const result = await simulateAllOutreach([payload.candidate], payload.parsedJD, [payload.matchResult]);
+        return NextResponse.json({ success: true, data: { conversation: result.data[0], thinking: result.thinking } });
       }
       
       case 'analyze_interest': {
-        const conversationCandidates = payload.candidates.filter((c: any) => payload.conversations.some((conv: any) => conv.candidateId === c.id));
-        const result = await analyzeAllInterest(payload.conversations, conversationCandidates);
-        return NextResponse.json({ success: true, data: { interestResults: result.data, thinking: result.thinking } });
+        const result = await analyzeAllInterest([payload.conversation], [payload.candidate]);
+        return NextResponse.json({ success: true, data: { interestResult: result.data[0], thinking: result.thinking } });
       }
       
       case 'self_reflect': {
