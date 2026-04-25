@@ -1,7 +1,5 @@
 'use server';
 
-export const maxDuration = 60; // Max allowed for Vercel Hobby tier
-
 import { runPipeline } from '@/lib/pipeline';
 import type { PipelineResult, PipelineEvent, CandidateProfile } from '@/lib/schemas';
 
