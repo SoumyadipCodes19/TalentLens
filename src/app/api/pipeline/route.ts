@@ -50,11 +50,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, data: { interestResults: result.data, thinking: result.thinking } });
       }
       
-      case 'reflect_and_rank': {
+      case 'self_reflect': {
         const reflection = await selfReflect(payload.candidates, payload.matchResults, payload.interestResults);
-        const ranking = await generateFinalRanking(payload.candidates, payload.matchResults, payload.interestResults, reflection.data);
-        const combinedThinking = reflection.thinking + '\n---\n' + ranking.thinking;
-        return NextResponse.json({ success: true, data: { finalRanking: ranking.data, selfReflection: reflection.data, thinking: combinedThinking } });
+        return NextResponse.json({ success: true, data: { selfReflection: reflection.data, thinking: reflection.thinking } });
+      }
+
+      case 'generate_final_ranking': {
+        const ranking = await generateFinalRanking(payload.candidates, payload.matchResults, payload.interestResults, payload.selfReflection);
+        return NextResponse.json({ success: true, data: { finalRanking: ranking.data, thinking: ranking.thinking } });
       }
 
       default:

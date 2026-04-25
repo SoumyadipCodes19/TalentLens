@@ -100,20 +100,28 @@ export default function ClientPage() {
       const interestData = await callApi('analyze_interest', { conversations: outreachData.conversations, candidates: finalCandidates });
       addEvent({ stage: 'interest_analysis', status: 'completed', data: interestData.interestResults, timestamp: Date.now() });
 
-      // 7. Self-Reflection & Ranking
+      // 7. Self-Reflection
       setCurrentStage('self_reflection_ranking');
       addEvent({ stage: 'self_reflection_ranking', status: 'started', timestamp: Date.now() });
-      addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: getStageThinking('self_reflection_ranking'), timestamp: Date.now() });
+      addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: '🧠 Self-reflecting on scoring — checking for seniority bias, education bias, similarity patterns...', timestamp: Date.now() });
       
-      const rankData = await callApi('reflect_and_rank', { 
+      const reflectData = await callApi('self_reflect', { 
         candidates: finalCandidates, 
         matchResults: scoreData.matchResults, 
         interestResults: interestData.interestResults, 
-        parsedJD: jdData.parsedJD, 
-        strategy: strategyData.strategy 
+      });
+      addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: reflectData.thinking, timestamp: Date.now() });
+
+      // 8. Final Ranking
+      addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: '📊 Generating final executive brief and ranking...', timestamp: Date.now() });
+      const rankData = await callApi('generate_final_ranking', {
+        candidates: finalCandidates,
+        matchResults: scoreData.matchResults,
+        interestResults: interestData.interestResults,
+        selfReflection: reflectData.selfReflection
       });
       addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: rankData.thinking, timestamp: Date.now() });
-      addEvent({ stage: 'self_reflection_ranking', status: 'completed', data: { reflection: rankData.selfReflection, ranking: rankData.finalRanking }, timestamp: Date.now() });
+      addEvent({ stage: 'self_reflection_ranking', status: 'completed', data: { reflection: reflectData.selfReflection, ranking: rankData.finalRanking }, timestamp: Date.now() });
 
       // Assemble Final Result
       const pipelineResult: PipelineResult = {
@@ -123,7 +131,7 @@ export default function ClientPage() {
         matchResults: scoreData.matchResults,
         conversations: outreachData.conversations,
         interestResults: interestData.interestResults,
-        selfReflection: rankData.selfReflection,
+        selfReflection: reflectData.selfReflection,
         finalRanking: rankData.finalRanking,
         events: [], // Events are tracked in component state now
       };
