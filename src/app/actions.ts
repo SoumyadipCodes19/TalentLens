@@ -1,12 +1,12 @@
 'use server';
 
-import { parseJD } from '@/lib/agents/jd-parser';
-import { planStrategy } from '@/lib/agents/strategy-planner';
+import { parseJobDescription } from '@/lib/agents/jd-parser';
+import { planSearchStrategy } from '@/lib/agents/strategy-planner';
 import { discoverCandidates } from '@/lib/agents/candidate-discovery';
 import { scoreAllCandidates } from '@/lib/agents/match-scorer';
 import { simulateAllOutreach } from '@/lib/agents/outreach-simulator';
 import { analyzeAllInterest } from '@/lib/agents/interest-scorer';
-import { reflectAndRank } from '@/lib/agents/self-reflector';
+import { generateFinalRanking } from '@/lib/agents/self-reflector';
 
 import type { ParsedJD, SearchStrategy, CandidateProfile, MatchResult, Conversation, InterestResult, FinalRanking } from '@/lib/schemas';
 
@@ -25,14 +25,14 @@ async function withErrorHandling<T>(fn: () => Promise<T>): Promise<{ success: bo
 
 export async function parseJdAction(jdText: string) {
   return withErrorHandling(async () => {
-    const result = await parseJD(jdText);
+    const result = await parseJobDescription(jdText);
     return { parsedJD: result.data, thinking: result.thinking };
   });
 }
 
 export async function planStrategyAction(parsedJD: ParsedJD) {
   return withErrorHandling(async () => {
-    const result = await planStrategy(parsedJD);
+    const result = await planSearchStrategy(parsedJD);
     return { strategy: result.data, thinking: result.thinking };
   });
 }
@@ -76,7 +76,7 @@ export async function analyzeInterestAction(conversations: Conversation[], candi
 
 export async function reflectAndRankAction(candidates: CandidateProfile[], matchResults: MatchResult[], interestResults: InterestResult[], parsedJD: ParsedJD, strategy: SearchStrategy) {
   return withErrorHandling(async () => {
-    const result = await reflectAndRank(candidates, matchResults, interestResults, parsedJD, strategy);
+    const result = await generateFinalRanking(candidates, matchResults, interestResults, parsedJD, strategy);
     return { finalRanking: result.data, selfReflection: result.reflection, thinking: result.thinking };
   });
 }
