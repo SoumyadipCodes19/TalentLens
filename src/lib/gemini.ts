@@ -67,8 +67,8 @@ export async function generateStructured<T>(
     } catch (error) {
       lastError = error as Error;
       if (attempt < maxRetries - 1) {
-        console.warn(`[Gemini API] Request failed. Waiting 60 seconds before retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 60000));
+        console.warn(`[Gemini API] Request failed. Waiting 2 seconds before retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
   }
