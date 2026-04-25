@@ -4,15 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import JDInput from '@/components/JDInput';
 import PipelineProgress from '@/components/PipelineProgress';
 import ResultsDashboard from '@/components/ResultsDashboard';
-import { 
-  parseJdAction, 
-  planStrategyAction, 
-  discoverCandidatesAction, 
-  scoreCandidatesAction, 
-  simulateOutreachAction, 
-  analyzeInterestAction, 
-  reflectAndRankAction 
-} from './actions';
 import type { PipelineEvent, PipelineResult, PipelineStage, CandidateProfile } from '@/lib/schemas';
 import { Bot, AlertCircle } from 'lucide-react';
 
@@ -34,6 +25,17 @@ export default function ClientPage() {
     setEvents(prev => [...prev, event]);
   };
 
+  const callApi = async (action: string, payload: any) => {
+    const res = await fetch('/api/pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, payload })
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'API failed');
+    return json.data;
+  };
+
   const handleSubmit = async (jdText: string, importedCandidatesJson: CandidateProfile[] | null) => {
     setIsLoading(true);
     setError(null);
@@ -46,19 +48,17 @@ export default function ClientPage() {
       addEvent({ stage: 'jd_parsing', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'jd_parsing', status: 'thinking', thinking: getStageThinking('jd_parsing'), timestamp: Date.now() });
       
-      const jdRes = await parseJdAction(jdText);
-      if (!jdRes.success || !jdRes.data) throw new Error(jdRes.error || 'Failed to parse JD');
-      addEvent({ stage: 'jd_parsing', status: 'completed', data: jdRes.data.parsedJD, timestamp: Date.now() });
+      const jdData = await callApi('parse_jd', { jdText });
+      addEvent({ stage: 'jd_parsing', status: 'completed', data: jdData.parsedJD, timestamp: Date.now() });
 
       // 2. Strategy Planning
       setCurrentStage('strategy_planning');
       addEvent({ stage: 'strategy_planning', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'strategy_planning', status: 'thinking', thinking: getStageThinking('strategy_planning'), timestamp: Date.now() });
       
-      const strategyRes = await planStrategyAction(jdRes.data.parsedJD);
-      if (!strategyRes.success || !strategyRes.data) throw new Error(strategyRes.error || 'Failed to plan strategy');
-      addEvent({ stage: 'strategy_planning', status: 'thinking', thinking: strategyRes.data.thinking, timestamp: Date.now() });
-      addEvent({ stage: 'strategy_planning', status: 'completed', data: strategyRes.data.strategy, timestamp: Date.now() });
+      const strategyData = await callApi('plan_strategy', { parsedJD: jdData.parsedJD });
+      addEvent({ stage: 'strategy_planning', status: 'thinking', thinking: strategyData.thinking, timestamp: Date.now() });
+      addEvent({ stage: 'strategy_planning', status: 'completed', data: strategyData.strategy, timestamp: Date.now() });
 
       // 3. Candidate Discovery
       setCurrentStage('candidate_discovery');
@@ -70,10 +70,9 @@ export default function ClientPage() {
         finalCandidates = importedCandidatesJson;
       } else {
         addEvent({ stage: 'candidate_discovery', status: 'thinking', thinking: getStageThinking('candidate_discovery'), timestamp: Date.now() });
-        const candRes = await discoverCandidatesAction(jdRes.data.parsedJD, strategyRes.data.strategy);
-        if (!candRes.success || !candRes.data) throw new Error(candRes.error || 'Failed to discover candidates');
-        finalCandidates = candRes.data.candidates;
-        addEvent({ stage: 'candidate_discovery', status: 'thinking', thinking: candRes.data.thinking, timestamp: Date.now() });
+        const candData = await callApi('discover_candidates', { parsedJD: jdData.parsedJD, strategy: strategyData.strategy });
+        finalCandidates = candData.candidates;
+        addEvent({ stage: 'candidate_discovery', status: 'thinking', thinking: candData.thinking, timestamp: Date.now() });
       }
       addEvent({ stage: 'candidate_discovery', status: 'completed', data: finalCandidates, timestamp: Date.now() });
 
@@ -82,48 +81,50 @@ export default function ClientPage() {
       addEvent({ stage: 'match_scoring', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'match_scoring', status: 'thinking', thinking: getStageThinking('match_scoring'), timestamp: Date.now() });
       
-      const scoreRes = await scoreCandidatesAction(jdRes.data.parsedJD, finalCandidates, strategyRes.data.strategy);
-      if (!scoreRes.success || !scoreRes.data) throw new Error(scoreRes.error || 'Failed to score candidates');
-      addEvent({ stage: 'match_scoring', status: 'completed', data: scoreRes.data.matchResults, timestamp: Date.now() });
+      const scoreData = await callApi('score_candidates', { parsedJD: jdData.parsedJD, candidates: finalCandidates, strategy: strategyData.strategy });
+      addEvent({ stage: 'match_scoring', status: 'completed', data: scoreData.matchResults, timestamp: Date.now() });
 
       // 5. Outreach Simulation
       setCurrentStage('outreach_simulation');
       addEvent({ stage: 'outreach_simulation', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'outreach_simulation', status: 'thinking', thinking: getStageThinking('outreach_simulation'), timestamp: Date.now() });
       
-      const outreachRes = await simulateOutreachAction(jdRes.data.parsedJD, finalCandidates, scoreRes.data.matchResults);
-      if (!outreachRes.success || !outreachRes.data) throw new Error(outreachRes.error || 'Failed to simulate outreach');
-      addEvent({ stage: 'outreach_simulation', status: 'completed', data: outreachRes.data.conversations, timestamp: Date.now() });
+      const outreachData = await callApi('simulate_outreach', { parsedJD: jdData.parsedJD, candidates: finalCandidates, matchResults: scoreData.matchResults });
+      addEvent({ stage: 'outreach_simulation', status: 'completed', data: outreachData.conversations, timestamp: Date.now() });
 
       // 6. Interest Analysis
       setCurrentStage('interest_analysis');
       addEvent({ stage: 'interest_analysis', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'interest_analysis', status: 'thinking', thinking: getStageThinking('interest_analysis'), timestamp: Date.now() });
       
-      const interestRes = await analyzeInterestAction(outreachRes.data.conversations, finalCandidates);
-      if (!interestRes.success || !interestRes.data) throw new Error(interestRes.error || 'Failed to analyze interest');
-      addEvent({ stage: 'interest_analysis', status: 'completed', data: interestRes.data.interestResults, timestamp: Date.now() });
+      const interestData = await callApi('analyze_interest', { conversations: outreachData.conversations, candidates: finalCandidates });
+      addEvent({ stage: 'interest_analysis', status: 'completed', data: interestData.interestResults, timestamp: Date.now() });
 
       // 7. Self-Reflection & Ranking
       setCurrentStage('self_reflection_ranking');
       addEvent({ stage: 'self_reflection_ranking', status: 'started', timestamp: Date.now() });
       addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: getStageThinking('self_reflection_ranking'), timestamp: Date.now() });
       
-      const rankRes = await reflectAndRankAction(finalCandidates, scoreRes.data.matchResults, interestRes.data.interestResults, jdRes.data.parsedJD, strategyRes.data.strategy);
-      if (!rankRes.success || !rankRes.data) throw new Error(rankRes.error || 'Failed to rank candidates');
-      addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: rankRes.data.thinking, timestamp: Date.now() });
-      addEvent({ stage: 'self_reflection_ranking', status: 'completed', data: { reflection: rankRes.data.selfReflection, ranking: rankRes.data.finalRanking }, timestamp: Date.now() });
+      const rankData = await callApi('reflect_and_rank', { 
+        candidates: finalCandidates, 
+        matchResults: scoreData.matchResults, 
+        interestResults: interestData.interestResults, 
+        parsedJD: jdData.parsedJD, 
+        strategy: strategyData.strategy 
+      });
+      addEvent({ stage: 'self_reflection_ranking', status: 'thinking', thinking: rankData.thinking, timestamp: Date.now() });
+      addEvent({ stage: 'self_reflection_ranking', status: 'completed', data: { reflection: rankData.selfReflection, ranking: rankData.finalRanking }, timestamp: Date.now() });
 
       // Assemble Final Result
       const pipelineResult: PipelineResult = {
-        parsedJD: jdRes.data.parsedJD,
-        strategy: strategyRes.data.strategy,
+        parsedJD: jdData.parsedJD,
+        strategy: strategyData.strategy,
         candidates: finalCandidates,
-        matchResults: scoreRes.data.matchResults,
-        conversations: outreachRes.data.conversations,
-        interestResults: interestRes.data.interestResults,
-        selfReflection: rankRes.data.selfReflection,
-        finalRanking: rankRes.data.finalRanking,
+        matchResults: scoreData.matchResults,
+        conversations: outreachData.conversations,
+        interestResults: interestData.interestResults,
+        selfReflection: rankData.selfReflection,
+        finalRanking: rankData.finalRanking,
         events: [], // Events are tracked in component state now
       };
 
