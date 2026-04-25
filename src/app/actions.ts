@@ -6,7 +6,7 @@ import { discoverCandidates } from '@/lib/agents/candidate-discovery';
 import { scoreAllCandidates } from '@/lib/agents/match-scorer';
 import { simulateAllOutreach } from '@/lib/agents/outreach-simulator';
 import { analyzeAllInterest } from '@/lib/agents/interest-scorer';
-import { generateFinalRanking } from '@/lib/agents/self-reflector';
+import { selfReflect, generateFinalRanking } from '@/lib/agents/self-reflector';
 
 import type { ParsedJD, SearchStrategy, CandidateProfile, MatchResult, Conversation, InterestResult, FinalRanking } from '@/lib/schemas';
 
@@ -76,7 +76,12 @@ export async function analyzeInterestAction(conversations: Conversation[], candi
 
 export async function reflectAndRankAction(candidates: CandidateProfile[], matchResults: MatchResult[], interestResults: InterestResult[], parsedJD: ParsedJD, strategy: SearchStrategy) {
   return withErrorHandling(async () => {
-    const result = await generateFinalRanking(candidates, matchResults, interestResults, parsedJD, strategy);
-    return { finalRanking: result.data, selfReflection: result.reflection, thinking: result.thinking };
+    const reflection = await selfReflect(candidates, matchResults, interestResults);
+    const ranking = await generateFinalRanking(candidates, matchResults, interestResults, reflection.data);
+    
+    // Combine thinking
+    const combinedThinking = reflection.thinking + '\n---\n' + ranking.thinking;
+    
+    return { finalRanking: ranking.data, selfReflection: reflection.data, thinking: combinedThinking };
   });
 }
