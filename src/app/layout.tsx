@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TalentLens — AI-Powered Talent Scouting & Engagement Agent",
-  description: "An autonomous AI agent that parses job descriptions, discovers matching candidates, conducts conversational outreach, and produces ranked shortlists scored on Match Score and Interest Score.",
-  keywords: ["AI recruiting", "talent scouting", "candidate matching", "recruitment agent", "AI HR"],
+  title: "TalentLens",
+  description: "Autonomous recruiting and talent engagement.",
+  keywords: ["AI recruiting", "talent scouting", "candidate matching"],
 };
 
 import { Analytics } from "@vercel/analytics/react"
