@@ -24,30 +24,15 @@ export async function scoreAllCandidates(
   strategy: SearchStrategy,
   onProgress?: (candidateId: string, index: number) => void
 ): Promise<{ data: MatchResult[]; thinking: string }> {
-  const results: MatchResult[] = [];
-  const thinkingParts: string[] = [];
+  const resultsResults = await Promise.all(
+    candidates.map(async (candidate, index) => {
+      onProgress?.(candidate.id, index);
+      return scoreCandidate(parsedJD, candidate, strategy);
+    })
+  );
 
-  // Process in batches of 3 to respect rate limits
-  const batchSize = 3;
-  for (let i = 0; i < candidates.length; i += batchSize) {
-    const batch = candidates.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(async (candidate, batchIndex) => {
-        onProgress?.(candidate.id, i + batchIndex);
-        return scoreCandidate(parsedJD, candidate, strategy);
-      })
-    );
-
-    for (const result of batchResults) {
-      results.push(result.data);
-      thinkingParts.push(result.thinking);
-    }
-
-    // Small delay between batches for rate limiting
-    if (i + batchSize < candidates.length) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
+  const results = resultsResults.map(r => r.data);
+  const thinkingParts = resultsResults.map(r => r.thinking);
 
   return {
     data: results,

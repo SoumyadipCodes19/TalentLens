@@ -43,32 +43,17 @@ export async function simulateAllOutreach(
   matchResults: MatchResult[],
   onProgress?: (candidateId: string, index: number) => void
 ): Promise<{ data: Conversation[]; thinking: string }> {
-  const conversations: Conversation[] = [];
-  const thinkingParts: string[] = [];
+  const resultsResults = await Promise.all(
+    candidates.map(async (candidate, index) => {
+      const matchResult = matchResults.find(m => m.candidateId === candidate.id);
+      if (!matchResult) throw new Error(`No match result for candidate ${candidate.id}`);
+      onProgress?.(candidate.id, index);
+      return simulateOutreach(candidate, parsedJD, matchResult);
+    })
+  );
 
-  // Process in batches of 2 (Groq has lower rate limits)
-  const batchSize = 2;
-  for (let i = 0; i < candidates.length; i += batchSize) {
-    const batch = candidates.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(async (candidate, batchIndex) => {
-        const matchResult = matchResults.find(m => m.candidateId === candidate.id);
-        if (!matchResult) throw new Error(`No match result for candidate ${candidate.id}`);
-        onProgress?.(candidate.id, i + batchIndex);
-        return simulateOutreach(candidate, parsedJD, matchResult);
-      })
-    );
-
-    for (const result of batchResults) {
-      conversations.push(result.data);
-      thinkingParts.push(result.thinking);
-    }
-
-    // Delay between batches
-    if (i + batchSize < candidates.length) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  }
+  const conversations = resultsResults.map(r => r.data);
+  const thinkingParts = resultsResults.map(r => r.thinking);
 
   return {
     data: conversations,
