@@ -124,6 +124,7 @@ export default function ClientPage() {
         interestResults: interestRes.data.interestResults,
         selfReflection: rankRes.data.selfReflection,
         finalRanking: rankRes.data.finalRanking,
+        events: [], // Events are tracked in component state now
       };
 
       setResult(pipelineResult);
