@@ -79,6 +79,26 @@ npm run dev
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed implementation notes on the concurrent pipeline model and state management.
 
+## 🔮 Future Scope
+
+While the current version of TalentLens is a high-fidelity prototype, it is architected to transition into a full-scale production product with the following roadmap:
+
+### 📡 Live Candidate Engagement
+- **From Simulation to Reality**: Transition the Groq-powered *Outreach Simulator* into a *Live Outreach Agent*.
+- **Direct Messaging Integration**: Connect the agent to real-world communication channels via:
+  - **WhatsApp Business API (Twilio)** for instant mobile engagement.
+  - **LinkedIn Automation APIs** for professional network outreach.
+  - **Email (SendGrid/Resend)** for traditional corporate communication.
+- **Bi-Directional Sync**: Real-time handling of candidate replies, allowing the agent to answer questions about the role and company culture dynamically.
+
+### 📊 Real-Time Interest Tracking
+- **Sentiment Refinement**: Continuous monitoring of live message threads to update the **Interest Score** in real-time as the candidate's engagement level fluctuates.
+- **Automated Scheduling**: Integration with Calendly or Google Calendar to allow the agent to book interviews directly once a candidate hits a "Strong Yes" interest threshold.
+
+### 🛡️ Enterprise Grade Scaling
+- **Team Collaboration**: Shared dashboards for recruitment teams to monitor multiple agent-led search strategies simultaneously.
+- **Multi-Model Fallbacks**: Implementing automated routing between Gemini, Llama, and GPT models to ensure 100% uptime and optimal cost-performance ratios for different regions.
+
 ## 📄 License
 
 MIT
