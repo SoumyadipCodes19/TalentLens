@@ -99,13 +99,12 @@ export default function ClientPage({ session }: { session: any }) {
       addEvent({ stage: 'match_scoring', status: 'thinking', thinking: getStageThinking('match_scoring'), timestamp: Date.now() });
       
       const matchResults: MatchResult[] = [];
-      // Execute scoring requests completely concurrently to maximize speed and bypass timeouts
-      const scorePromises = finalCandidates.map(async (candidate) => {
+      // Process candidates sequentially instead of Promise.all to avoid Vercel timeouts and API rate limits
+      for (const candidate of finalCandidates) {
+        addEvent({ stage: 'match_scoring', status: 'thinking', thinking: `🔍 Analyzing candidate: ${candidate.name}...`, timestamp: Date.now() });
         const scoreData = await callApi('score_candidate', { parsedJD: jdData.parsedJD, candidate, strategy: strategyData.strategy });
         matchResults.push(scoreData.matchResult);
-        addEvent({ stage: 'match_scoring', status: 'thinking', thinking: `Scored candidate: ${candidate.name}`, timestamp: Date.now() });
-      });
-      await Promise.all(scorePromises);
+      }
       addEvent({ stage: 'match_scoring', status: 'completed', data: matchResults, timestamp: Date.now() });
 
       // 5. Outreach Simulation (Granular)
@@ -119,13 +118,13 @@ export default function ClientPage({ session }: { session: any }) {
       const topCandidates = finalCandidates.filter(c => topCandidateIds.includes(c.id));
       
       const conversations: Conversation[] = [];
-      const outreachPromises = topCandidates.map(async (candidate) => {
+      // Process outreach sequentially to ensure stability
+      for (const candidate of topCandidates) {
+        addEvent({ stage: 'outreach_simulation', status: 'thinking', thinking: `💬 Simulating conversation with ${candidate.name}...`, timestamp: Date.now() });
         const matchResult = matchResults.find(m => m.candidateId === candidate.id);
         const outreachData = await callApi('simulate_outreach', { parsedJD: jdData.parsedJD, candidate, matchResult });
         conversations.push(outreachData.conversation);
-        addEvent({ stage: 'outreach_simulation', status: 'thinking', thinking: `Simulated outreach for: ${candidate.name}`, timestamp: Date.now() });
-      });
-      await Promise.all(outreachPromises);
+      }
       addEvent({ stage: 'outreach_simulation', status: 'completed', data: conversations, timestamp: Date.now() });
 
       // 6. Interest Analysis (Granular)
@@ -134,13 +133,13 @@ export default function ClientPage({ session }: { session: any }) {
       addEvent({ stage: 'interest_analysis', status: 'thinking', thinking: getStageThinking('interest_analysis'), timestamp: Date.now() });
       
       const interestResults: InterestResult[] = [];
-      const interestPromises = conversations.map(async (conversation) => {
+      // Process analysis sequentially
+      for (const conversation of conversations) {
         const candidate = finalCandidates.find(c => c.id === conversation.candidateId);
+        addEvent({ stage: 'interest_analysis', status: 'thinking', thinking: `🧐 Extracting interest signals from ${candidate?.name}'s response...`, timestamp: Date.now() });
         const interestData = await callApi('analyze_interest', { conversation, candidate });
         interestResults.push(interestData.interestResult);
-        addEvent({ stage: 'interest_analysis', status: 'thinking', thinking: `Analyzed interest for: ${candidate?.name}`, timestamp: Date.now() });
-      });
-      await Promise.all(interestPromises);
+      }
       addEvent({ stage: 'interest_analysis', status: 'completed', data: interestResults, timestamp: Date.now() });
 
       // 7. Self-Reflection

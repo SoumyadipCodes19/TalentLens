@@ -9,7 +9,7 @@ import { simulateAllOutreach } from '@/lib/agents/outreach-simulator';
 import { analyzeAllInterest } from '@/lib/agents/interest-scorer';
 import { selfReflect, generateFinalRanking } from '@/lib/agents/self-reflector';
 
-export const maxDuration = 60; // Natively supported in API routes
+export const maxDuration = 300; // Increased to 5 minutes (Max for Vercel Pro) to prevent 504 Gateway Timeouts
 
 // Initialize Redis if configured
 const redis = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN 
