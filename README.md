@@ -12,6 +12,10 @@
 
 TalentLens is designed to stabilize and scale the talent acquisition process by moving from monolithic processing to a highly concurrent, granular API-driven architecture. It ensures production stability on serverless platforms (like Vercel) while maintaining a premium, minimalistic aesthetic.
 
+## 📺 Demo Video
+
+[**Watch the Product Demo on Google Drive**](https://drive.google.com/file/d/1cNQLo0x603Gx-ufxs82t2q4moD2s5ZSM/view?usp=drive_link)
+
 ## ✨ Key Features
 
 ### 🛡️ Secure & Private
@@ -24,17 +28,57 @@ TalentLens is designed to stabilize and scale the talent acquisition process by 
 
 1. **JD Parser** — Deep analysis of explicit and hidden job requirements.
 2. **Strategy Planner** — Autonomous creation of search and evaluation strategies.
-3. **Candidate Discovery** — AI-generated candidate personas (or CSV/JSON imports).
+3. **Candidate Discovery** — AI-generated candidate personas (or secure CSV/JSON imports).
 4. **Match Scorer** — Skill-by-skill evaluation with full reasoning transparency.
-5. **Outreach Simulator** — multi-turn personalized conversations via Groq Llama 3.1 8B.
+5. **Outreach Simulator** — Multi-turn personalized conversations via Groq Llama 3.1 8B.
 6. **Interest Analyzer** — Sentiment and engagement analysis of outreach transcripts.
 7. **Self-Reflector & Ranker** — Automated bias detection and final executive brief generation.
 
 ### 🏗️ Modern Architecture
 
-- **Concurrency-First**: Heavy scoring and outreach tasks are executed in parallel across granular API requests, bypassing serverless timeout limits.
+- **Stability-First Pipeline**: Tasks are executed in a granular, sequential loop to bypass serverless timeouts (Vercel 10s limit) and ensure API rate-limit compliance.
 - **Minimalist Aesthetic**: A professional, monochrome dark-mode design focused on data clarity and high-end typography.
 - **Disposable Email Protection**: Built-in blocking of temporary email domains to maintain user quality.
+- **Usage Tracking**: Redis-powered anti-abuse layer with admin-bypass capabilities.
+
+## 📊 Candidate Data Format
+
+TalentLens allows you to import your own candidate database via CSV or JSON.
+
+### CSV Format
+
+Upload a CSV file with the following headers (case-insensitive):
+| Header | Description | Example |
+| :--- | :--- | :--- |
+| `name` | Candidate full name | John Doe |
+| `current_role` | Current job title | Senior Frontend Engineer |
+| `company` | Current company | TechCorp |
+| `experience_years` | Total years of experience | 8 |
+| `skills` | Semicolon-separated skills | React; TypeScript; Node.js |
+| `location` | Current city/region | Remote / San Francisco |
+| `summary` | Professional bio | Expert in building scalable... |
+| `education_degree` | (Optional) Degree | B.S. Computer Science |
+| `achievements` | (Optional) Semicolon-separated | Built X; Led team of 5 |
+
+### JSON Format
+
+Upload an array of objects matching the profile schema:
+
+```json
+[
+  {
+    "name": "Jane Smith",
+    "currentRole": "Product Manager",
+    "experienceYears": 5,
+    "skills": [{ "name": "Agile", "proficiency": "advanced", "yearsUsed": 4 }],
+    "education": {
+      "degree": "MBA",
+      "field": "Business",
+      "institution": "Stanford"
+    }
+  }
+]
+```
 
 ## 📦 Local Setup
 
@@ -84,7 +128,8 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed implementation notes on th
 While the current version of TalentLens is a high-fidelity prototype, it is architected to transition into a full-scale production product with the following roadmap:
 
 ### 📡 Live Candidate Engagement
-- **From Simulation to Reality**: Transition the Groq-powered *Outreach Simulator* into a *Live Outreach Agent*.
+
+- **From Simulation to Reality**: Transition the Groq-powered _Outreach Simulator_ into a _Live Outreach Agent_.
 - **Direct Messaging Integration**: Connect the agent to real-world communication channels via:
   - **WhatsApp Business API (Twilio)** for instant mobile engagement.
   - **LinkedIn Automation APIs** for professional network outreach.
@@ -92,10 +137,12 @@ While the current version of TalentLens is a high-fidelity prototype, it is arch
 - **Bi-Directional Sync**: Real-time handling of candidate replies, allowing the agent to answer questions about the role and company culture dynamically.
 
 ### 📊 Real-Time Interest Tracking
+
 - **Sentiment Refinement**: Continuous monitoring of live message threads to update the **Interest Score** in real-time as the candidate's engagement level fluctuates.
 - **Automated Scheduling**: Integration with Calendly or Google Calendar to allow the agent to book interviews directly once a candidate hits a "Strong Yes" interest threshold.
 
 ### 🛡️ Enterprise Grade Scaling
+
 - **Team Collaboration**: Shared dashboards for recruitment teams to monitor multiple agent-led search strategies simultaneously.
 - **Multi-Model Fallbacks**: Implementing automated routing between Gemini, Llama, and GPT models to ensure 100% uptime and optimal cost-performance ratios for different regions.
 

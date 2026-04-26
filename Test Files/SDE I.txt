@@ -1,0 +1,38 @@
+Software Development Engineer I (SDE I)
+
+Company: TechNova Inc.
+Location: San Francisco, CA (Hybrid — 3 days onsite)
+Department: Platform Engineering
+
+About the Role:
+We're looking for an ambitious and enthusiastic Software Development Engineer I to join our Platform Engineering team. You'll work closely with senior engineers to build, test, and maintain features for our core infrastructure, helping us serve our 50M+ daily active users while rapidly accelerating your own technical growth.
+
+Requirements:
+- Bachelor’s degree in computer science, Software Engineering, or a related technical field (or equivalent practical experience)
+- 0-2 years of software development experience (industry internships or co-ops count)
+- Proficiency in at least one general-purpose programming language (e.g., Python, Java, JavaScript/TypeScript, or Go)
+- Strong CS fundamentals — algorithms, data structures, and object-oriented design
+- Familiarity with version control systems (Git) and standard software development lifecycles
+- Strong problem-solving skills and a proactive attitude toward learning 
+
+Nice to Have:
+- Previous internship experience in a fast-paced tech environment
+- Familiarity with web frameworks (e.g., Spring Boot, Express, or FastAPI) and databases (SQL/NoSQL)
+- Basic exposure to cloud platforms (AWS, GCP) or containerization (Docker)
+- Personal or academic projects demonstrating end-to-end software development
+- Active GitHub profile or contributions to open-source projects
+
+Responsibilities:
+- Write clean, maintainable, and well-tested code for backend services
+- Collaborate with cross-functional teams and senior engineers to implement new features
+- Identify, troubleshoot, and resolve bugs in existing software
+- Participate in code reviews to maintain code quality and learn industry best practices
+- Write and maintain clear technical documentation for the components you build
+
+What We Offer:
+- Competitive salary ($110K - $140K) + equity
+- Dedicated mentorship program to accelerate your career growth
+- Fast-paced, engineering-driven culture
+- Comprehensive benefits package
+
+We're passionate about growing early-career talent. If you love solving problems and want to build impactful software at scale, we want to hear from you.

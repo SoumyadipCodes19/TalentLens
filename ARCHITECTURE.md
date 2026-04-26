@@ -4,13 +4,13 @@
 
 TalentLens is built as an **autonomous multi-step AI agentic pipeline**. Unlike simple LLM wrappers, it follows a structured, granular execution model designed for production stability, security, and explainability.
 
-### 1. Stability-First Architecture (Concurrency)
+### 1. Stability-First Architecture (Sequential Processing)
 
-To bypass Vercel's strict serverless execution limits (10s on hobby tier), the pipeline was migrated from a monolithic Server Action to a **granular, concurrent API model**.
+To bypass Vercel's strict serverless execution limits (10s on hobby tier) and avoid hitting API rate limits on Gemini/Groq, the pipeline follows a **granular, sequential model**.
 
 - **Atomic Operations**: Each pipeline step (Match Scoring, Outreach, Interest Analysis) is triggered via individual API requests.
-- **Client-Side Orchestration**: The frontend manages the state machine and triggers concurrent requests for each candidate.
-- **Production Resilience**: This ensures that even with dozens of candidates, no single HTTP request ever hits the serverless timeout.
+- **Sequential Orchestration**: The frontend manages the state machine and triggers requests for each candidate one-by-one.
+- **Production Resilience**: This ensures that LLM latencies are handled gracefully, preventing 504 Gateway Timeouts by staying within the per-request execution window.
 
 ### 2. Security & Rate Limiting
 
@@ -44,7 +44,7 @@ Every agent decision is accompanied by "Thinking" metadata. We use **Gemini 2.5 
           ├─► POST /api/pipeline (plan_strategy)
           ├─► POST /api/pipeline (discover_candidates)
           │
-          │  (CONCURRENT LOOPS PER CANDIDATE)
+          │  (SEQUENTIAL LOOPS PER CANDIDATE)
           ├─► POST /api/pipeline (score_candidate)
           ├─► POST /api/pipeline (simulate_outreach)
           └─► POST /api/pipeline (analyze_interest)
