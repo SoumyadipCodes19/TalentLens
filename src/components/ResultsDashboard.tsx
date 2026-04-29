@@ -152,7 +152,7 @@ export default function ResultsDashboard({ result }: { result: PipelineResult })
 
       {/* CANDIDATES TAB */}
       {activeTab === 'candidates' && (
-        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: '20px' }}>
           {candidates.map(c => {
             const match = matchResults.find(m => m.candidateId === c.id);
             return (

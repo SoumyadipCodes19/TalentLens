@@ -186,6 +186,21 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .main-inner {
+    padding: 20px 16px;
+  }
+  .sidebar-header,
+  .sidebar-content,
+  .sidebar-footer {
+    padding: 16px;
+  }
+  .glass-card, 
+  .glass-card-static {
+    padding: 16px !important;
+  }
+}
+
 /* ─── Glass Card ───────────────────────────────────────────────────────── */
 .glass-card {
   background: var(--bg-card);
